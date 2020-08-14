@@ -1,1 +1,1 @@
-# coredns
+# dns
