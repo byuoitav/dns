@@ -1,4 +1,4 @@
-module github.com/byuoitav/coredns
+module github.com/byuoitav/dns
 
 go 1.14
 

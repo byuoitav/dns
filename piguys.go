@@ -1,3 +1,4 @@
+/*
 package piguys
 
 import (
@@ -109,3 +110,4 @@ func (p PiGuys) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 
 	return dns.RcodeSuccess, nil
 }
+*/

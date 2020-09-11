@@ -1,3 +1,4 @@
+/*
 package piguys
 
 import (
@@ -21,3 +22,4 @@ func setupPiGuys(c *caddy.Controller) error {
 
 	return nil
 }
+*/
