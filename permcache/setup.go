@@ -15,12 +15,17 @@ func init() {
 
 func setup(c *caddy.Controller) error {
 	c.Next() // 'permcache'
+	if !c.NextArg() {
+		return plugin.Error(_name, c.ArgErr())
+	}
+
+	path := c.Val()
+
 	if c.NextArg() {
 		return plugin.Error(_name, c.ArgErr())
 	}
 
-	// TODO parse arg to get db location
-	db, err := bolt.Open("/tmp/dns.db", 0600, nil)
+	db, err := bolt.Open(path, 0600, nil)
 	if err != nil {
 		return plugin.Error(_name, fmt.Errorf("can't open database: %w", err))
 	}
@@ -35,8 +40,8 @@ func setup(c *caddy.Controller) error {
 	}
 
 	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
-		return cache{
-			next: next,
+		return Cache{
+			Next: next,
 			db:   db,
 		}
 	})

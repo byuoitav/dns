@@ -1,0 +1,6 @@
+.:1053 {
+	cancel 3s
+	forward . 8.8.8.8:12345
+	permcache /tmp/dns.db
+	log
+}
