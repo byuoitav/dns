@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/coredns/coredns/plugin"
 	clog "github.com/coredns/coredns/plugin/pkg/log"
@@ -19,7 +18,8 @@ const (
 )
 
 var (
-	_bucket = []byte(_name)
+	_bucket   = []byte(_name)
+	_msgSplit = []byte("\r\n")
 )
 
 type Cache struct {
@@ -44,15 +44,17 @@ func (c Cache) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (
 	// strip off things that change from request to request
 	req := strip(r.Copy())
 
-	log.Infof("NEXT %s", req.Question[0].String())
+	if len(req.Question) == 1 {
+		log.Debugf("Resolving %s", req.Question[0].String())
+	} else {
+		log.Infof("Resolving query with %v questions (???)", len(req.Question))
+	}
 
 	code, err := plugin.NextOrFailure(c.Name(), c.Next, ctx, wrapped, r)
-	log.Infof("done")
-	if err != nil || code != dns.RcodeSuccess {
-		log.Errorf("err: %s, code: %s", err, dns.RcodeToString[code])
-		// pull answer from db if one exists
-		var msgs []*dns.Msg
+	if err != nil {
+		log.Warningf("error resolving: %s (Rcode: %s). Attempting to serve from cache", err, dns.RcodeToString[code])
 
+		var msgs []*dns.Msg
 		c.db.View(func(tx *bolt.Tx) error {
 			b := tx.Bucket(_bucket)
 			if b == nil {
@@ -64,11 +66,12 @@ func (c Cache) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (
 				return nil
 			}
 
-			split := bytes.Split(val, []byte{'\n'})
+			split := bytes.Split(val, _msgSplit)
 			for _, b := range split {
-				msg := new(dns.Msg)
+				msg := &dns.Msg{}
 				if err := msg.Unpack(b); err != nil {
-					return fmt.Errorf("unable to unpack message: %w", err)
+					log.Errorf("unable to unpack message: %w", err)
+					continue
 				}
 
 				msgs = append(msgs, msg)
@@ -78,28 +81,22 @@ func (c Cache) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (
 		})
 
 		// nothing was stored in the cache
-		// (or there was an error pulling from the cache - we ignore those)
+		// or there was an error unpacking the message in the cache
 		if len(msgs) == 0 {
-			log.Infof("Nothing found in cache, returning error to client")
+			log.Infof("No messages found in cache, returning original error to client")
 			return code, err
 		}
 
-		for _, msg := range msgs {
-			fmt.Printf("writing message:----\n%s----\n\n", msg)
-			fmt.Printf("question: %v\n", msg.Question)
-			fmt.Printf("ans: %v\n", msg.Answer)
-			fmt.Printf("ns: %v\n", msg.Ns)
-			fmt.Printf("extra: %v\n", msg.Extra)
+		defer w.Close()
 
+		for _, msg := range msgs {
 			if err := w.WriteMsg(msg); err != nil {
-				fmt.Printf("MY error writing message: %s\n", err)
-				os.Exit(1)
+				log.Errorf("unable to write message to client: %s", err)
 				return code, err
 			}
 		}
 
-		os.Exit(1)
-
+		log.Infof("Successfully returned answer from cache")
 		return dns.RcodeSuccess, nil
 	}
 
@@ -113,7 +110,7 @@ func (c Cache) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (
 		wrapped.Lock()
 		defer wrapped.Unlock()
 
-		buf := new(bytes.Buffer)
+		buf := &bytes.Buffer{}
 		for i, msg := range wrapped.msgs {
 			b, err := msg.Pack()
 			if err != nil {
@@ -122,17 +119,18 @@ func (c Cache) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (
 
 			_, _ = buf.Write(b)
 
+			// split up messages for parsing later
 			if i < len(wrapped.msgs)-1 {
-				_, _ = buf.WriteRune('\n')
+				_, _ = buf.Write(_msgSplit)
 			}
 		}
 
 		return b.Put([]byte(req.String()), buf.Bytes())
 	})
 	if err != nil {
-		// log error
-		fmt.Printf("error: %s\n", err)
+		clog.Errorf("unable to cache answer: %s", err)
 	}
 
+	clog.Debugf("Successfully cached and returned answer")
 	return code, nil
 }
