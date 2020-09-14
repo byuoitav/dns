@@ -112,6 +112,8 @@ github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGX
 github.com/cockroachdb/datadriven v0.0.0-20190809214429-80d97fb3cbaa/go.mod h1:zn76sxSg3SzpJ0PPJaLDCu+Bu0Lg3sKTORVIj19EIF8=
 github.com/coredns/coredns v1.7.0 h1:Tm2ZSdhTk+4okgjUp4K6KYzvBI2u34cdD4fKQRC4Eeo=
 github.com/coredns/coredns v1.7.0/go.mod h1:7ohsH7wAKBHd/KqwsTNv5O5lpJXbq25edA/aprpRya4=
+github.com/coredns/proxy v0.0.0-20191129143419-f0a08b13f568 h1:n3c1hDhcua5FJ0fTXoCYfNY4fijUBoed9d1+SB1HwO4=
+github.com/coredns/proxy v0.0.0-20191129143419-f0a08b13f568/go.mod h1:BXx1AhWPTL4TJqe70SRiT1MT41j8yWJGU6kEInPiDAA=
 github.com/coreos/go-semver v0.2.0/go.mod h1:nnelYz7RCh+5ahJtPPxZlU+153eP4D4r3EedlOD2RNk=
 github.com/coreos/go-systemd/v22 v22.0.0 h1:XJIw/+VlJ+87J+doOxznsAWIdmWuViOVhkQamW5YV28=
 github.com/coreos/go-systemd/v22 v22.0.0/go.mod h1:xO0FLkIi5MaZafQlIrOotqXZ90ih+1atmu1JpKERPPk=

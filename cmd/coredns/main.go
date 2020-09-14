@@ -9,15 +9,19 @@ import (
 )
 
 func init() {
+	added := make(map[string]bool)
+
 	// insert permcache after cache
 	for i, name := range dnsserver.Directives {
 		if name == "cache" {
 			dnsserver.Directives = append(dnsserver.Directives[:i], append([]string{"permcache"}, dnsserver.Directives[i:]...)...)
-			return
+			added["cache"] = true
 		}
 	}
 
-	panic("cache plugin not found in dnsserver.Directives")
+	if !added["cache"] {
+		panic("plugins not added to dnsserver.Directives")
+	}
 }
 
 func main() {
