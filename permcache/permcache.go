@@ -87,9 +87,10 @@ func (c Cache) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (
 			return code, err
 		}
 
-		defer w.Close()
-
 		for _, msg := range msgs {
+			// fix the id
+			msg.Id = r.Id
+
 			if err := w.WriteMsg(msg); err != nil {
 				log.Errorf("unable to write message to client: %s", err)
 				return code, err
