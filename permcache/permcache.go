@@ -7,6 +7,7 @@ import (
 
 	"github.com/coredns/coredns/plugin"
 	clog "github.com/coredns/coredns/plugin/pkg/log"
+	"github.com/coredns/coredns/request"
 	"github.com/miekg/dns"
 	bolt "go.etcd.io/bbolt"
 )
@@ -17,32 +18,32 @@ const (
 	_name = "permcache"
 )
 
-var (
-	_bucket   = []byte(_name)
-	_msgSplit = []byte("\r\n")
-)
-
 type Cache struct {
 	Next plugin.Handler
 
 	db *bolt.DB
 }
 
-type Record struct {
-	Name    string
-	Type    string
-	Content string
-}
+func (c *Cache) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
+	state := request.Request{W: w, r: r}
+	//wrapped := &responseWriter{
+	//	ResponseWriter: w,
+	//}
 
-func (c Cache) Name() string { return _name }
+	// TODO
+	// 1. see if the item is in the cache
+	// 2. if it is, just return that and in the background, forward the request
+	// 3. if it isn't, just forward the request
 
-func (c Cache) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
-	wrapped := &responseWriter{
-		ResponseWriter: w,
+	// check if this item is in the cache and just return that if it is
+	if msgs, err := c.get(r); err == nil {
+		// return these msgs
+		_ = w.WriteMsg(msgs[0])
+
+		// go fetch the entry anyways
+
+		return dns.RcodeSuccess, nil
 	}
-
-	// strip off things that change from request to request
-	req := strip(r.Copy())
 
 	if len(req.Question) == 1 {
 		log.Debugf("Resolving %s", req.Question[0].String())
@@ -135,3 +136,5 @@ func (c Cache) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (
 	clog.Debugf("Successfully cached and returned answer")
 	return code, nil
 }
+
+func (c *Cache) Name() string { return _name }
