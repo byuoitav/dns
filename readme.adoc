@@ -1,0 +1,11 @@
+= DNS
+
+== Example Corefile
+Corefile
+----
+.:1053 {
+	forward . 8.8.8.8:53
+	permcache /tmp/dns.db
+	log
+}
+----
