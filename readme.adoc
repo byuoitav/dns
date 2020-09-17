@@ -1,0 +1,7 @@
+= DNS
+
+== Example Corefile
+Corefile
+----
+include::cmd/coredns/example-corefile[]
+----

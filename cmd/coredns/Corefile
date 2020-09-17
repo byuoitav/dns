@@ -1,7 +1,0 @@
-.:1053 {
-	cancel 500ms
-	forward . 8.8.8.8:533
-	permcache /tmp/dns.db
-	log
-	errors
-}
