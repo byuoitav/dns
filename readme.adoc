@@ -3,7 +3,7 @@
 == Example Corefile
 Corefile
 ----
-.:1053 {
+.:53 {
 	forward . 8.8.8.8:53
 	permcache /tmp/dns.db
 	log
