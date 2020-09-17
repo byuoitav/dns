@@ -109,7 +109,7 @@ func (c *Cache) get(req *dns.Msg) (*dns.Msg, error) {
 	msg, err := valToReplyMsg(val, req)
 	if err != nil {
 		// this entry must be bad, so delete it
-		c.delete(req)
+		_ = c.delete(req)
 		return nil, err
 	}
 
