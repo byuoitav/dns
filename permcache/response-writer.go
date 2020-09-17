@@ -24,8 +24,14 @@ func (w *responseWriter) RemoteAddr() net.Addr {
 }
 
 func (w *responseWriter) WriteMsg(m *dns.Msg) error {
-	if err := w.cache.set(m); err != nil {
-		log.Warningf("unable to insert into cache: %s", err)
+	if len(w.state.Req.Question) == 1 {
+		log.Infof("%v | Saving answer for '%s' in cache", w.state.Req.Id, w.state.Req.Question[0].Name)
+	} else {
+		log.Infof("%v | Saving answer in cache (%#q)", w.state.Req.Id, w.state.Req.String())
+	}
+
+	if err := w.cache.set(w.state.Req, m); err != nil {
+		log.Warningf("%v | unable to insert into cache: %s", w.state.Req.Id, err)
 	}
 
 	if !w.writeToClient {
@@ -33,4 +39,9 @@ func (w *responseWriter) WriteMsg(m *dns.Msg) error {
 	}
 
 	return w.ResponseWriter.WriteMsg(m)
+}
+
+func (w *responseWriter) Write(buf []byte) (int, error) {
+	log.Warning("can't handle Write() call; not caching reply")
+	return w.ResponseWriter.Write(buf)
 }

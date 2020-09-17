@@ -82,8 +82,8 @@ func valToReplyMsg(b []byte, r *dns.Msg) (*dns.Msg, error) {
 	return resp, nil
 }
 
-func (c *Cache) get(m *dns.Msg) (*dns.Msg, error) {
-	key := key(m)
+func (c *Cache) get(req *dns.Msg) (*dns.Msg, error) {
+	key := key(req)
 	if len(key) == 0 {
 		return nil, errNotInCache
 	}
@@ -106,16 +106,16 @@ func (c *Cache) get(m *dns.Msg) (*dns.Msg, error) {
 		return nil, err
 	}
 
-	return valToReplyMsg(val, m)
+	return valToReplyMsg(val, req)
 }
 
-func (c *Cache) set(m *dns.Msg) error {
-	key := key(m)
+func (c *Cache) set(req *dns.Msg, resp *dns.Msg) error {
+	key := key(req)
 	if len(key) == 0 {
 		return nil
 	}
 
-	val, err := msgToVal(m)
+	val, err := msgToVal(resp)
 	if err != nil {
 		return err
 	}
