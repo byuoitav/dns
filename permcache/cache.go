@@ -28,7 +28,7 @@ func key(m *dns.Msg) []byte {
 		byte(m.Question[0].Qtype),
 	}
 
-	buf = append([]byte(m.Question[0].Name))
+	buf = append(buf, []byte(m.Question[0].Name)...)
 	return buf
 }
 
@@ -106,7 +106,14 @@ func (c *Cache) get(req *dns.Msg) (*dns.Msg, error) {
 		return nil, err
 	}
 
-	return valToReplyMsg(val, req)
+	msg, err := valToReplyMsg(val, req)
+	if err != nil {
+		// this entry must be bad, so delete it
+		c.delete(req)
+		return nil, err
+	}
+
+	return msg, nil
 }
 
 func (c *Cache) set(req *dns.Msg, resp *dns.Msg) error {
