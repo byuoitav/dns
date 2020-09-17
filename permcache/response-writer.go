@@ -25,9 +25,9 @@ func (w *responseWriter) RemoteAddr() net.Addr {
 
 func (w *responseWriter) WriteMsg(m *dns.Msg) error {
 	if len(w.state.Req.Question) == 1 {
-		log.Infof("%v | Saving answer for '%s' in cache", w.state.Req.Id, w.state.Req.Question[0].Name)
+		log.Debugf("%v | Saving answer for '%s' in cache", w.state.Req.Id, w.state.Req.Question[0].Name)
 	} else {
-		log.Infof("%v | Saving answer in cache (%#q)", w.state.Req.Id, w.state.Req.String())
+		log.Debugf("%v | Saving answer in cache (%#q)", w.state.Req.Id, w.state.Req.String())
 	}
 
 	if err := w.cache.set(w.state.Req, m); err != nil {

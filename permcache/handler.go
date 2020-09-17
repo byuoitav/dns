@@ -38,16 +38,16 @@ func (c *Cache) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) 
 	if err != nil {
 		// not in cache, just get the item like normal
 		if len(r.Question) == 1 {
-			log.Infof("%v | Forwarding request '%s' (unable to get from cache: %s)", r.Id, r.Question[0].Name, err)
+			log.Debugf("%v | Forwarding request '%s' (unable to get from cache: %s)", r.Id, r.Question[0].Name, err)
 		} else {
-			log.Infof("%v | Forwarding request (unable to get from cache: %s)", r.Id, err)
+			log.Debugf("%v | Forwarding request (unable to get from cache: %s)", r.Id, err)
 		}
 
 		rw.writeToClient = true
 		return plugin.NextOrFailure(c.Name(), c.Next, ctx, rw, r)
 	}
 
-	log.Infof("%v | Returning answer for '%s' from cache and fetching real answer in background", r.Id, r.Question[0].Name)
+	log.Debugf("%v | Returning answer for '%s' from cache and fetching real answer in background", r.Id, r.Question[0].Name)
 
 	// write the cached answer to the client
 	_ = w.WriteMsg(msg)
